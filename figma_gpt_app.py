@@ -34,6 +34,7 @@ feature descriptions.  You can build upon these primitives to suit your
 workflow (e.g. summarising designs, generating acceptance criteria, etc.).
 """
 
+
 from __future__ import annotations
 
 import json
@@ -68,7 +69,9 @@ class FigmaClient:
         """
         url = f"{self.base_url}/files/{file_key}"
         resp = requests.get(url, headers=self._headers())
-        if not resp.ok:
+
+      
+if not resp.ok:
             # Raise an exception with detailed message for any error response.
             resp.raise_for_status()
         return resp.json()
