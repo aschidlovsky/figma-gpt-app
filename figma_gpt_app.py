@@ -57,15 +57,7 @@ class FigmaClient:
         return {"X-Figma-Token": self.token}
 
     def get_file(self, file_key: str) -> Dict[str, Any]:
-        """Fetch the full document tree of a Figma file.
-
-        The Figma API's ``/v1/files/{file_key}`` endpoint returns the full
-        structure of a file, including pages and nodes.  You must supply
-        your personal access token in the ``X-Figma-Token`` header
-        【876613816359908†L21-L45】.
-
-        :param file_key: The key of the Figma file (found in its URL).
-        :returns: Parsed JSON response from the API.
+        """Fetch the full document tree of a Figma file.        :returns: Parsed JSON response from the API.
         :raises: ``requests.HTTPError`` for non‑200 responses.
         """
         url = f"{self.base_url}/files/{file_key}"
