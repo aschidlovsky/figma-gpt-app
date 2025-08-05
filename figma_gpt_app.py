@@ -185,31 +185,59 @@ def main() -> None:
 
     * ``FIGMA_TOKEN`` – a personal access token with at least read access
       to the Figma file you want to process.
-    * ``FIGMA_FILE_KEY`` – the key of the Figma file (found in the file's URL).
+      * ``FIGMA_PROJECT_ID`` – the ID of the Figma project (found in the project's URL)..
     * ``OPENAI_API_KEY`` – your OpenAI API key for ChatGPT.
 
     It fetches the file, extracts frame names, uses ChatGPT to generate
     feature suggestions, and prints the results to standard output.
     """
-    figma_token = os.environ.get("FIGMA_TOKEN")
-    figma_file_key = os.environ.get("FIGMA_FILE_KEY")
+      figma_token = os.environ.get("FIGMA_TOKEN")
+    figma_project_id = os.environ.get("FIGMA_PROJECT_ID")
     openai_key = os.environ.get("OPENAI_API_KEY")
-    if not (figma_token and figma_file_key and openai_key):
+    if not (figma_token and figma_project_id and openai_key):
         print(
-            "FIGMA_TOKEN, FIGMA_FILE_KEY and OPENAI_API_KEY environment variables "
+            "FIGMA_TOKEN, FIGMA_PROJECT_ID and OPENAI_API_KEY environment variables "
             "must be set to run this example."
         )
         return
+
     figma_client = FigmaClient(figma_token)
-    file_data = figma_client.get_file(figma_file_key)
-    frame_names = extract_frame_names(file_data)
-    if not frame_names:
-        print("No frames were found in the Figma document.")
+
+    # Retrieve the list of files in the project using Figma API
+    project_url = f"https://api.figma.com/v1/projects/{figma_project_id}/files"
+    try:
+        resp = requests.get(project_url, headers={"X-Figma-Token": figma_token})
+        resp.raise_for_status()
+    except Exception as exc:
+        print(f"Error retrieving project files: {exc}")
         return
-    print(f"Found {len(frame_names)} top‑level frame(s): {', '.join(frame_names)}")
-    features = generate_features_from_figma(frame_names, openai_key)
-    print("\nGenerated feature suggestions:\n")
-    for feature in features:
+
+    project_files = resp.json().get("files", [])
+    if not project_files:
+        print("No files were found in the Figma project. Nothing to analyse.")
+        return
+
+    for file_meta in project_files:
+        file_key = file_meta.get("key")
+        file_name = file_meta.get("name", "Unnamed file")
+        if not file_key:
+            continue
+        try:
+            file_data = figma_client.get_file(file_key)
+        except Exception as exc:
+            print(f"Error retrieving file {file_name} ({file_key}): {exc}")
+            continue
+
+        frame_names = extract_frame_names(file_data)
+        if not frame_names:
+            print(f"No frames were found in file {file_name}. Skipping.")
+            continue
+
+        print(f"Found {len(frame_names)} top-level frames in {file_name}: {', '.join(frame_names)}")
+        features = generate_features_from_figma(frame_names, openai_key)
+        print(f"\nGenerated feature suggestions for {file_name}:\n")
+        for feature in features:
+            print(f"- {feature['title']}: {feature['description']}")
         print(f"- {feature['title']}: {feature['description']}")
 
 
