@@ -32,7 +32,8 @@ This example is for demonstration purposes.  It shows how to fetch a Figma
 file, extract frame names, craft a prompt and send it to ChatGPT to generate
 feature descriptions.  You can build upon these primitives to suit your
 workflow (e.g. summarising designs, generating acceptance criteria, etc.).
-"""
+"
+""
 
 
 from __future__ import annotations
@@ -73,7 +74,7 @@ class FigmaClient:
       
 if not resp.ok:
             # Raise an exception with detailed message for any error response.
-            resp.raise_for_status()
+              resp.raise_for_status()
         return resp.json()
 
 
